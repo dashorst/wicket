@@ -1,50 +1,66 @@
 The Apache Wicket PMC is proud to announce Apache Wicket 7.1.0!
 
-    This release marks another minor release of Wicket 7. We
-    use semantic versioning for the development of Wicket, and as such no
-    API breaks are present breaks are present in this release compared to
-    7.0.0.
+This release marks another minor release of Wicket 7. We
+use semantic versioning for the development of Wicket, and as such no
+API breaks are present breaks are present in this release compared to
+7.0.0.
 
-    New and noteworthy
-    ------------------
+New and noteworthy
+------------------
 
-    <OPTIONAL>
+Significant improvement in performance while adding components to
+the component hierarchy. There was a regression in performance
+introduced by component queuing. The algorithm checked if there were
+any components to be dequeued, but did so in a O(n^2) way. This was
+fixed.
 
-    Using this release
-    ------------------
+Upon further investigation we found that adding components is O(n^2)
+since 1.3 (when memory was scarce and expensive). We fixed that and
+made it roughly O(1).
 
-    With Apache Maven update your dependency to (and don't forget to
-    update any other dependencies on Wicket projects to the same version):
+This means that when you have a page with 10k components on it, the
+adding won't slow you down any more, and the new way of adding
+components will scrape a few ms off your overall average response time.
 
-    <dependency>
-        <groupId>org.apache.wicket</groupId>
-        <artifactId>wicket-core</artifactId>
-        <version>7.1.0</version>
-    </dependency>
+This release also fixes several bugs where head sections were not rendered,
+i18n JavaScript resources could not be loaded, Range: header parsing and
+a couple of component queuing issues.
 
-    Or download and build the distribution yourself, or use our
-    convenience binary package
+Using this release
+------------------
 
-     * Source: http://www.apache.org/dyn/closer.cgi/wicket/7.1.0
-     * Binary: http://www.apache.org/dyn/closer.cgi/wicket/7.1.0/binaries
+With Apache Maven update your dependency to (and don't forget to
+update any other dependencies on Wicket projects to the same version):
 
-    Upgrading from earlier versions
-    -------------------------------
+<dependency>
+    <groupId>org.apache.wicket</groupId>
+    <artifactId>wicket-core</artifactId>
+    <version>7.1.0</version>
+</dependency>
 
-    If you upgrade from 7.y.z this release is a drop in replacement. If
-    you come from a version prior to 7.0.0, please read our Wicket 7
-    migration guide found at
+Or download and build the distribution yourself, or use our
+convenience binary package
 
-     * http://s.apache.org/wicket7migrate
+ * Source: http://www.apache.org/dyn/closer.cgi/wicket/7.1.0
+ * Binary: http://www.apache.org/dyn/closer.cgi/wicket/7.1.0/binaries
 
-    Have fun!
+Upgrading from earlier versions
+-------------------------------
 
-    — The Wicket team
+If you upgrade from 7.y.z this release is a drop in replacement. If
+you come from a version prior to 7.0.0, please read our Wicket 7
+migration guide found at
 
-    
+ * http://s.apache.org/wicket7migrate
+
+Have fun!
+
+— The Wicket team
+
+
 ========================================================================
 
-    The signatures for the source release artefacts:
+The signatures for the source release artefacts:
 
     
 Signature for apache-wicket-7.1.0.zip:
