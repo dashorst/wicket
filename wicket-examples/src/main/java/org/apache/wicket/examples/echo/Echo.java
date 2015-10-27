@@ -16,7 +16,7 @@
  */
 package org.apache.wicket.examples.echo;
 
-import org.apache.wicket.examples.WicketExamplePage;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
@@ -28,8 +28,10 @@ import org.apache.wicket.model.PropertyModel;
  * 
  * @author Eelco Hillenius
  */
-public class Echo extends WicketExamplePage
+public class Echo extends WebPage
 {
+	private static final long serialVersionUID = 1L;
+
 	private String message = "[type your message to the world here]";
 
 	/**

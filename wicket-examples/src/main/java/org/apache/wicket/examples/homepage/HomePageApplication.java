@@ -17,6 +17,7 @@
 package org.apache.wicket.examples.homepage;
 
 import org.apache.wicket.Page;
+import org.apache.wicket.examples.ExamplePage;
 import org.apache.wicket.examples.WicketExampleApplication;
 
 /**
@@ -33,7 +34,7 @@ public class HomePageApplication extends WicketExampleApplication
 	@Override
 	public Class<? extends Page> getHomePage()
 	{
-		return HomePage.class;
+		return ExamplePage.class;
 	}
 
 	@Override
@@ -41,6 +42,6 @@ public class HomePageApplication extends WicketExampleApplication
 	{
 		super.init();
 
-		mountPage("index.html", HomePage.class);
+// mountPage("index.html", HomePage.class);
 	}
 }

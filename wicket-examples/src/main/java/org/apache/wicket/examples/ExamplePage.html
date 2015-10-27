@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Apache Wicket Examples</title>
+<style>
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p,
+	blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn,
+	em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var,
+	b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend,
+	table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas,
+	details, embed, figure, figcaption, footer, header, hgroup, menu, nav,
+	output, ruby, section, summary, time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+
+*, *:after, *:before {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+::-moz-selection {
+	background: #232725;
+	color: #fff;
+	text-shadow: none;
+}
+
+::selection {
+	background: #232725;
+	color: #fff;
+	text-shadow: none;
+}
+
+html {
+	color: #3f4542;
+	font: 300 15px "Source Sans Pro", sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: auto;
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	line-height: 1.5em;
+}
+
+h1, h2, legend, h3, h4, h5, h6 {
+	font-family: "Source Sans Pro";
+	font-weight: 400;
+	line-height: 1.5em;
+	margin: 0 0 0.25em 0;
+}
+
+h1 {
+	font-size: 2rem;
+}
+
+h2, legend {
+	font-size: 1.5rem;
+}
+
+h3 {
+	font-size: 1.3rem;
+}
+
+h4 {
+	font-size: 1.2rem;
+}
+
+h5 {
+	font-size: 1.1rem;
+}
+
+h6 {
+	font-size: 1rem;
+}
+
+p {
+	margin-bottom: 1rem;
+}
+
+a {
+	color: #FF9925;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #ffb158;
+}
+
+header {
+	background-color: #111;
+	line-height: 1;
+	padding: 1rem;
+}
+
+header img {
+	width: 240px;
+}
+
+#main {
+	-ms-flex-direction: row;
+	-webkit-box-orient: horizontal;
+	-moz-box-orient: horizontal;
+	-ms-box-orient: horizontal;
+	box-orient: horizontal;
+	display: -ms-flexbox;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-box;
+	display: box;
+	height: 100%;
+}
+
+#nav {
+	border-right : 0.5px solid #aaa;
+	-ms-flex: 0;
+	-webkit-box-flex: 0;
+	-moz-box-flex: 0;
+	-ms-box-flex: 0;
+	box-flex: 0;
+	padding:1rem;
+}
+
+#example {
+	-ms-flex: 1;
+	-webkit-box-flex: 1;
+	-moz-box-flex: 1;
+	-ms-box-flex: 1;
+	box-flex: 1;
+	padding:1rem;
+} 
+#example_iframe {
+	height:100%;
+	min-height:500px;
+	width:100%;
+}
+</style>
+</head>
+<body>
+	<header>
+		<div>
+			<img src="http://wicket.apache.org/img/logo-apachewicket-white.svg">
+		</div>
+	</header>
+	<section id="main">
+		<div id="nav">
+			<wicket:link>
+				<h3>Basic Examples</h3>
+				<nav>
+					<li><a target="example_iframe" href="helloworld/HelloWorld.html">Hello, World!</a></li>
+					<li><a target="example_iframe" href="echo/Echo.html">Echo</a></li>
+					<li><a target="example_iframe" href="guestbook/GuestBook.html">Guest book</a></li>
+				</nav>
+				<h3>AJAX Examples</h3>
+				<nav>
+					<li><a target="example_iframe" href="ajax/builtin/AutoCompletePage.html">AJAX Auto Complete</a></li>
+					<li><a target="example_iframe" href="ajax/builtin/ChoicePage.html">AJAX Choice</a></li>
+					<li><a target="example_iframe" href="ajax/builtin/GuestBook.html">AJAX Guest book</a></li>
+				</nav>
+			</wicket:link>
+		</div>
+		<div id="example">
+			<iframe id="example_iframe" src="/helloworld"></iframe>
+		</div>
+	</section>
+	<footer>
+		<div></div>
+	</footer>
+</body>
+</html>

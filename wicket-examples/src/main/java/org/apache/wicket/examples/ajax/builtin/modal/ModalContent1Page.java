@@ -16,13 +16,19 @@
  */
 package org.apache.wicket.examples.ajax.builtin.modal;
 
+import java.util.Date;
+
 import org.apache.wicket.Page;
 import org.apache.wicket.PageReference;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.model.Model;
 
 
 /**
@@ -39,29 +45,41 @@ public class ModalContent1Page extends WebPage
 	 */
 	public ModalContent1Page(final PageReference modalWindowPage, final ModalWindow window)
 	{
-		add(new AjaxLink<Void>("closeOK")
+		Form<?> form = new Form<>("form");
+		add(form);
+
+		add(new AjaxSubmitLink("closeOK", form)
 		{
+			private static final long serialVersionUID = 1L;
+
 			@Override
-			public void onClick(AjaxRequestTarget target)
+			public void onSubmit(AjaxRequestTarget target, Form<?> form)
 			{
 				if (modalWindowPage != null)
 					((ModalWindowPage)modalWindowPage.getPage()).setResult("Modal window 1 - close link OK");
-				window.close(target);
+				ModalWindow.closeCurrent(target);
 			}
 		});
 
 		add(new AjaxLink<Void>("closeCancel")
 		{
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
 				if (modalWindowPage != null)
 					((ModalWindowPage)modalWindowPage.getPage()).setResult("Modal window 1 - close link Cancel");
-				window.close(target);
+				ModalWindow.closeCurrent(target);
 			}
 		});
 
-		add(new DateTimeField("dateTimeField"));
+		String longText = "";
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < 10000; i++)
+			sb.append("a");
+		form.add(new TextArea<>("bigFingTextField", Model.of(sb.toString())));
+		form.add(new DateTimeField("dateTimeField", Model.of(new Date())));
 
 		final ModalWindow modal;
 		add(modal = new ModalWindow("modal"));

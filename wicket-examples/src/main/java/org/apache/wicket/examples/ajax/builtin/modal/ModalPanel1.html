@@ -2,8 +2,18 @@
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
 	<div style="margin: 1em">
 		This is panel content! 
+		<form wicket:id="form">
 		<p>
-			Date text field to demonstrate AJAX header contribution <span wicket:id="dateTimeField"></span>
+		<TEXTAREA rows="10" cols="100" wicket:id="bigFingTextField"></TEXTAREA>
+		</p>
+		<p>
+		  <div>An example of a component that uses header contributions</div>
+		  <div wicket:id="dateTimeField" />
+		</p>
+		</form>
+		<p>
+			<a wicket:id="closeOK">Close this window with result "OK"</a><br/>
+			<a wicket:id="closeCancel">Close this window with result "Cancel"</a><br/>
 		</p>
 	</div>
 </wicket:panel>

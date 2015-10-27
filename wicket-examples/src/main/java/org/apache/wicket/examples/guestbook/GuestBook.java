@@ -21,7 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.examples.WicketExamplePage;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.Form;
@@ -42,7 +42,7 @@ import org.apache.wicket.util.value.ValueMap;
  * @author Jonathan Locke
  * @author Martijn Dashorst
  */
-public final class GuestBook extends WicketExamplePage
+public final class GuestBook extends WebPage
 {
 	/** A global list of all comments from all users across all sessions */
 	private static final List<Comment> commentList = new ArrayList<>();
