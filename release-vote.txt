@@ -1,0 +1,78 @@
+This is a vote to release Apache Wicket 6.23.0
+
+Please download the source distributions found in our staging area
+linked below.
+
+I have included the signatures for both the source archives. This vote
+lasts for 72 hours minimum.
+
+[ ] Yes, release Apache Wicket 6.23.0
+[ ] No, don't release Apache Wicket 6.23.0, because ...
+
+Distributions, changelog, keys and signatures can be found at:
+
+    https://dist.apache.org/repos/dist/dev/wicket/6.23.0
+
+Staging repository:
+
+    https://repository.apache.org/content/repositories/orgapachewicket-1069/
+
+The binaries are available in the above link, as are a staging
+repository for Maven. Typically the vote is on the source, but should
+you find a problem with one of the binaries, please let me know, I can
+re-roll them some way or the other.
+
+Staging git repository data:
+
+    Repository:  git@github.com:dashorst/wicket.git
+    Branch:      build/wicket-6.23.0
+    Release tag: rel/wicket-6.23.0
+
+
+========================================================================
+
+    The signatures for the source release artefacts:
+
+    
+Signature for apache-wicket-6.23.0.zip:
+
+    -----BEGIN PGP SIGNATURE-----
+Comment: GPGTools - https://gpgtools.org
+
+iEYEABECAAYFAlcd7YkACgkQJBX8W/xy/UXj0ACgrhCPPnuW7xSd2p7zo6pxQKeU
+uC4AmwaavBtALbyC0w4eaK6qgOTTbTFa
+=thu6
+-----END PGP SIGNATURE-----
+    
+Signature for apache-wicket-6.23.0.tar.gz:
+
+    -----BEGIN PGP SIGNATURE-----
+Comment: GPGTools - https://gpgtools.org
+
+iEYEABECAAYFAlcd7YkACgkQJBX8W/xy/UXWXQCeNWa8xIe4dtrXrognVudOonXf
+fPwAn2meYov9oWZ8C1rG4MG2Sc8LfvHa
+=7Anf
+-----END PGP SIGNATURE-----
+    
+========================================================================
+
+    CHANGELOG for 6.23.0:
+    
+** Bug
+
+    * [WICKET-6108] - Closing a ModalWindow with jQuery 2.2.0 produces javascript errors
+    * [WICKET-6111] - Empty redirect on redirect to home page if home page already shown
+    * [WICKET-6131] - IndexOutOfBoundsException in org.apache.wicket.core.request.mapper.CryptoMapper.decryptEntireUrl
+    * [WICKET-6135] - There is no good way to get POST body content
+
+** Improvement
+
+    * [WICKET-6098] - Add logging to HttpSessionDataStore
+    * [WICKET-6100] - Upgrade jQuery to 1.12.3/2.2.3
+    * [WICKET-6110] - Add a message to StalePageException for better debugging
+    * [WICKET-6122] - Add .map to the list of allowed file extensions in SecurePackageResourceGuard
+    * [WICKET-6123] - Remove 'abstract' from ChainingModel
+    * [WICKET-6144] - Wicket-ajax parameter / header may be used to bypass proper exception handling
+    * [WICKET-6145] - Enable DeltaManager to replicate PageTable in Sessions
+    * [WICKET-6152] - Allow to add more than one WebSocketBehavior in the component tree
+
