@@ -8,7 +8,7 @@ $(cat $0 | tail -n +14)
 
 ------------------------------------------"
 
-read --prompt "Press enter to continue or CTRL-C to abort"
+read -p "Press enter to continue or CTRL-C to abort"
 
 # push the release tag to ASF git repo
 
