@@ -1694,6 +1694,10 @@ public abstract class MarkupContainer extends Component implements Iterable<Comp
 		}
 	}
 
+	/**
+	 * 
+	 * @see org.apache.wicket.Component#internalMarkRendering(boolean)
+	 */
 	@Override
 	void internalMarkRendering(boolean setRenderingFlag)
 	{
@@ -1790,17 +1794,6 @@ public abstract class MarkupContainer extends Component implements Iterable<Comp
 				component.clearVisibleInHierarchyCache();
 			}
 		});
-	}
-
-	@Override
-	protected void onAfterRenderChildren()
-	{
-		for (Component child : this)
-		{
-			// set RENDERING_FLAG to false for auto-component's children (like Enclosure)
-			child.markRendering(false);
-		}
-		super.onAfterRenderChildren();
 	}
 
 	@Override

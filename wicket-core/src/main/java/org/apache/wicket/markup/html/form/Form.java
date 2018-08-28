@@ -35,11 +35,10 @@ import org.apache.wicket.Page;
 import org.apache.wicket.WicketRuntimeException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.core.util.string.CssUtils;
 import org.apache.wicket.event.IEvent;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.form.validation.FormValidatorAdapter;
@@ -146,8 +145,6 @@ public class Form<T> extends WebMarkupContainer
 		IRequestListener,
 		IGenericComponent<T, Form<T>>
 {
-	private static final String HIDDEN_DIV_START = "<div style=\"width:0px;height:0px;position:absolute;left:-100px;top:-100px;overflow:hidden\">";
-
 	public static final String ENCTYPE_MULTIPART_FORM_DATA = "multipart/form-data";
 
 	/**
@@ -511,6 +508,7 @@ public class Form<T> extends WebMarkupContainer
 	/**
 	 * @deprecated use {@link #getJsForListenerUrl(CharSequence)} instead.
 	 */
+	@Deprecated(since = "8.0", forRemoval = true)
 	public final CharSequence getJsForInterfaceUrl(CharSequence url) {
 		return getJsForListenerUrl(url);
 	}
@@ -528,7 +526,27 @@ public class Form<T> extends WebMarkupContainer
 	public final CharSequence getJsForListenerUrl(CharSequence url)
 	{
 		Form<?> root = getRootForm();
-		return String.format("var f = document.getElementById('%s'); f.action='%s';f.submit();", root.getMarkupId(), url);
+
+		AppendingStringBuffer buffer = new AppendingStringBuffer();
+		
+		String action = url.toString();
+		if (root.encodeUrlInHiddenFields()) {
+			buffer.append(String.format("document.getElementById('%s').innerHTML = '", root.getHiddenFieldsId()));
+			
+			// parameter must be sent as hidden field, as it would be ignored in the action URL
+			int i = action.indexOf('?');
+			if (i != -1) {
+				writeParamsAsHiddenFields(Strings.split(action.substring(i + 1), '&'), buffer);
+				
+				action = action.substring(0, i);
+			}
+			
+			buffer.append("';");
+		}
+		buffer.append(String.format("var f = document.getElementById('%s');", root.getMarkupId()));
+		buffer.append(String.format("f.action='%s';", action));
+		buffer.append("f.submit();");
+		return buffer;
 	}
 
 	/**
@@ -669,26 +687,6 @@ public class Form<T> extends WebMarkupContainer
 	@Override
 	public final void onRequest()
 	{
-		// check methods match
-		if (getRequest().getContainerRequest() instanceof HttpServletRequest)
-		{
-			String desiredMethod = getMethod();
-			String actualMethod = ((HttpServletRequest)getRequest().getContainerRequest()).getMethod();
-			if (!actualMethod.equalsIgnoreCase(desiredMethod))
-			{
-				MethodMismatchResponse response = onMethodMismatch();
-				switch (response)
-				{
-					case ABORT :
-						return;
-					case CONTINUE :
-						break;
-					default :
-						throw new IllegalStateException("Invalid " +
-							MethodMismatchResponse.class.getName() + " value: " + response);
-				}
-			}
-		}
 		onFormSubmitted(null);
 	}
 
@@ -718,6 +716,27 @@ public class Form<T> extends WebMarkupContainer
 	 */
 	public final void onFormSubmitted(IFormSubmitter submitter)
 	{
+		// check methods match
+		if (getRequest().getContainerRequest() instanceof HttpServletRequest)
+		{
+			String desiredMethod = getMethod();
+			String actualMethod = ((HttpServletRequest)getRequest().getContainerRequest()).getMethod();
+			if (!actualMethod.equalsIgnoreCase(desiredMethod))
+			{
+				MethodMismatchResponse response = onMethodMismatch();
+				switch (response)
+				{
+					case ABORT :
+						return;
+					case CONTINUE :
+						break;
+					default :
+						throw new IllegalStateException("Invalid " +
+								MethodMismatchResponse.class.getName() + " value: " + response);
+				}
+			}
+		}
+
 		markFormsSubmitted(submitter);
 
 		if (handleMultiPart())
@@ -1177,8 +1196,10 @@ public class Form<T> extends WebMarkupContainer
 	{
 		AppendingStringBuffer buffer = new AppendingStringBuffer();
 
+		String cssClass = getString(CssUtils.key(Form.class, "hidden-fields"));
+
 		// div that is not visible (but not display:none either)
-		buffer.append(HIDDEN_DIV_START);
+		buffer.append(String.format("<div style=\"width:0px;height:0px;position:absolute;left:-100px;top:-100px;overflow:hidden\" class=\"%s\">", cssClass));
 
 		// add an empty textfield (otherwise IE doesn't work)
 		buffer.append("<input type=\"text\" tabindex=\"-1\" autocomplete=\"off\"/>");
@@ -1194,7 +1215,7 @@ public class Form<T> extends WebMarkupContainer
 
 		// close div
 		buffer.append("</div>");
-
+		
 		getResponse().write(buffer);
 	}
 
@@ -1264,12 +1285,11 @@ public class Form<T> extends WebMarkupContainer
 	}
 
 	/**
-	 * Returns the HiddenFieldId which will be used as the name and id property of the hiddenfield
-	 * that is generated for event dispatches.
+	 * Returns the id which will be used for the hidden div containing all parameter fields.
 	 * 
-	 * @return The name and id of the hidden field.
+	 * @return the id of the hidden div
 	 */
-	public final String getHiddenFieldId()
+	private final String getHiddenFieldsId()
 	{
 		return getInputNamePrefix() + getMarkupId() + "_hf_0";
 	}
@@ -1338,7 +1358,7 @@ public class Form<T> extends WebMarkupContainer
 						}
 
 					});
-			
+
 			if (Boolean.TRUE.equals(anyEmbeddedMultipart)) {
 				multiPart |= MULTIPART_HINT_YES;
 			} else {
@@ -1618,7 +1638,8 @@ public class Form<T> extends WebMarkupContainer
 	}
 
 	/**
-	 * 
+	 * Should URL query parameters be encoded in hidden fields.
+	 *
 	 * @return true if form's method is 'get'
 	 */
 	protected boolean encodeUrlInHiddenFields()
@@ -1648,7 +1669,7 @@ public class Form<T> extends WebMarkupContainer
 	}
 
 	/**
-	 * Writes the markup for the hidden input field and default button field if applicable to the
+	 * Writes the markup for the hidden input fields and default button field if applicable to the
 	 * current response.
 	 */
 	public final void writeHiddenFields()
@@ -1657,7 +1678,11 @@ public class Form<T> extends WebMarkupContainer
 		// and have to write the url parameters as hidden fields
 		if (encodeUrlInHiddenFields())
 		{
-			AppendingStringBuffer buffer = new AppendingStringBuffer(HIDDEN_DIV_START);
+			String cssClass = getString(CssUtils.key(Form.class, "hidden-fields"));
+
+			getResponse().write(String.format("<div id=\"%s\" style=\"width:0px;height:0px;position:absolute;left:-100px;top:-100px;overflow:hidden\" class=\"%s\">", getHiddenFieldsId(), cssClass));
+
+			AppendingStringBuffer buffer = new AppendingStringBuffer();				
 
 			String url = getActionUrl().toString();
 			int i = url.indexOf('?');
@@ -1665,9 +1690,10 @@ public class Form<T> extends WebMarkupContainer
 			String[] params = Strings.split(queryString, '&');
 
 			writeParamsAsHiddenFields(params, buffer);
-			
-			buffer.append("</div>");
+
 			getResponse().write(buffer);
+			
+			getResponse().write("</div>");
 		}
 
 		// if a default submitting component was set, handle the rendering of that
@@ -1740,7 +1766,7 @@ public class Form<T> extends WebMarkupContainer
 			this.multiPart &= MULTIPART_HARD;
 		}
 	}
-	
+
 	@Override
 	protected void onBeforeRender()
 	{
@@ -2019,32 +2045,6 @@ public class Form<T> extends WebMarkupContainer
 	public static Form<?> findForm(Component component)
 	{
 		return component.findParent(Form.class);
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public void renderHead(IHeaderResponse response)
-	{
-		if (!isRootForm() && isMultiPart())
-		{
-			// register some metadata so we can later properly handle multipart ajax posts for
-			// embedded forms
-			registerJavaScriptNamespaces(response);
-			response.render(JavaScriptHeaderItem.forScript("Wicket.Forms[\"" + getMarkupId() +
-				"\"]={multipart:true};", Form.class.getName() + '.' + getMarkupId() + ".metadata"));
-		}
-	}
-
-	/**
-	 * Produces javascript that registers Wicket.Forms namespaces
-	 * 
-	 * @param response
-	 */
-	protected void registerJavaScriptNamespaces(IHeaderResponse response)
-	{
-		response.render(JavaScriptHeaderItem.forScript(
-			"if (typeof(Wicket)=='undefined') { Wicket={}; } if (typeof(Wicket.Forms)=='undefined') { Wicket.Forms={}; }",
-			Form.class.getName()));
 	}
 
 	/**
