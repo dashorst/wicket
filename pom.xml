@@ -1273,7 +1273,7 @@
 				<inherited>true</inherited>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>2.9</version>
+				<version>3.0.0</version>
 				<reportSets>
 					<reportSet>
 						<reports>
