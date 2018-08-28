@@ -49,7 +49,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<wildfly.version>11.0.0.Final</wildfly.version>
 		<version.wildfly.maven.plugin>1.0.2.Final</version.wildfly.maven.plugin>
-		<jee.spec.version>1.1.0.Final</jee.spec.version>
+		<jee.spec.version>1.1.1.Final</jee.spec.version>
 	</properties>
 
 	<dependencyManagement>
