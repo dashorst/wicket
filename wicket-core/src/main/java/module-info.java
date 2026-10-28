@@ -61,6 +61,7 @@ module org.apache.wicket.core {
     exports org.apache.wicket.core.util.file;
     exports org.apache.wicket.core.util.lang;
     exports org.apache.wicket.core.util.objects.checker;
+    exports org.apache.wicket.core.util.objects.statedelta;
     exports org.apache.wicket.core.util.resource;
     exports org.apache.wicket.core.util.resource.locator;
     exports org.apache.wicket.core.util.resource.locator.caching;
