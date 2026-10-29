@@ -77,7 +77,7 @@ class ComponentStateHasherTest extends WicketTestCase
 			delta.getChanged().get(""));
 		assertEquals(Set.of("", "box", "box:bound"), delta.getAffected(EnumSet.noneOf(DependencyKind.class)));
 		assertEquals(Set.of("", "box", "box:bound", "capturing", "anonymous", "pageProperty", "link",
-			"lambdaLink"), delta.getAffected());
+			"plainLink", "lambdaLink"), delta.getAffected());
 	}
 
 	@Test
@@ -87,7 +87,7 @@ class ComponentStateHasherTest extends WicketTestCase
 
 		assertEquals(Set.of(""), delta.getChanged().keySet());
 		assertEquals(Set.of("", "capturing"), delta.getAffected(EnumSet.of(DependencyKind.LAMBDA)));
-		assertEquals(Set.of("", "anonymous", "link", "lambdaLink"),
+		assertEquals(Set.of("", "anonymous", "link", "plainLink", "lambdaLink"),
 			delta.getAffected(EnumSet.of(DependencyKind.INNER_CLASS)));
 		assertEquals(Set.of("", "pageProperty"),
 			delta.getAffected(EnumSet.of(DependencyKind.REFERENCE)));

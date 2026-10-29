@@ -130,7 +130,11 @@ public class ComponentStateHasher
 
 	private boolean trackSharing;
 
-	private final Map<Class<?>, Field[]> fieldCache = new HashMap<>();
+	private boolean resetPerField = true;
+
+	private final Map<Class<?>, Slot[]> layouts = new HashMap<>();
+
+	private final Map<Class<?>, Integer> masks = new HashMap<>();
 
 	/**
 	 * A hasher that excludes nothing.
@@ -171,6 +175,8 @@ public class ComponentStateHasher
 	public ComponentStateHasher excludeField(Class<?> declaringClass, String name)
 	{
 		excludedFields.add(declaringClass.getName() + "#" + name);
+		layouts.clear();
+		masks.clear();
 		return this;
 	}
 
@@ -186,6 +192,8 @@ public class ComponentStateHasher
 	public ComponentStateHasher ignoreFlags(Class<? extends Component> type, int mask)
 	{
 		ignoredFlags.merge(type, mask, (a, b) -> a | b);
+		layouts.clear();
+		masks.clear();
 		return this;
 	}
 
@@ -218,6 +226,22 @@ public class ComponentStateHasher
 	}
 
 	/**
+	 * Resets the stream's handle table per field, the default, or only per component. Per field
+	 * keeps a change in one field from shifting the back references, and so the digest, of the
+	 * fields after it; per component makes {@link StateSnapshot.ComponentState#getSize()} the size
+	 * of the component serialized on its own.
+	 * 
+	 * @param perField
+	 *            whether to reset per field
+	 * @return this
+	 */
+	public ComponentStateHasher setResetPerField(boolean perField)
+	{
+		this.resetPerField = perField;
+		return this;
+	}
+
+	/**
 	 * Counts the objects reached from more than one component.
 	 * 
 	 * @param track
@@ -243,12 +267,20 @@ public class ComponentStateHasher
 		Map<String, StateSnapshot.ComponentState> states = new LinkedHashMap<>();
 		try
 		{
-			Walker walker = new Walker(page);
-			states.put("", walker.hash(page));
-			page.visitChildren((component, visit) -> {
-				StateSnapshot.ComponentState state = walker.hash(component);
-				states.put(state.getPath(), state);
-			});
+			List<Component> components = new ArrayList<>();
+			components.add(page);
+			page.visitChildren((component, visit) -> components.add(component));
+			IdentityHashMap<Component, String> paths = new IdentityHashMap<>(components.size());
+			paths.put(page, "");
+			for (int i = 1; i < components.size(); i++)
+			{
+				paths.put(components.get(i), components.get(i).getPageRelativePath());
+			}
+			Walker walker = new Walker(page, paths);
+			for (Component component : components)
+			{
+				states.put(paths.get(component), walker.hash(component));
+			}
 			StateSnapshot snapshot = new StateSnapshot(states, System.nanoTime() - start);
 			lastSharedObjects = walker.shared;
 			return snapshot;
@@ -270,35 +302,112 @@ public class ComponentStateHasher
 		return lastSharedObjects;
 	}
 
-	private Field[] serializableFields(Class<?> type)
+	private enum Kind
 	{
-		return fieldCache.computeIfAbsent(type, c -> {
-			ObjectStreamClass desc = ObjectStreamClass.lookup(c);
-			if (desc == null)
+		FLAGS, CHILDREN, DATA, INT, LONG, BOOLEAN, SHORT, BYTE, CHAR, FLOAT, DOUBLE, OBJECT
+	}
+
+	/**
+	 * A serializable field of a component class that is hashed.
+	 */
+	private record Slot(Field field, String key, int keyHash, Kind kind, boolean enclosing)
+	{
+	}
+
+	private Slot[] layout(Class<?> type)
+	{
+		return layouts.computeIfAbsent(type, c -> {
+			List<Class<?>> hierarchy = new ArrayList<>();
+			for (Class<?> h = c; h != Object.class; h = h.getSuperclass())
 			{
-				return new Field[0];
+				hierarchy.add(0, h);
 			}
-			ObjectStreamField[] streamFields = desc.getFields();
-			Field[] fields = new Field[streamFields.length];
-			for (int i = 0; i < streamFields.length; i++)
+			List<Slot> slots = new ArrayList<>();
+			for (Class<?> h : hierarchy)
 			{
-				fields[i] = field(c, streamFields[i].getName());
+				ObjectStreamClass desc = ObjectStreamClass.lookup(h);
+				if (desc == null)
+				{
+					continue;
+				}
+				for (ObjectStreamField streamField : desc.getFields())
+				{
+					String key = h.getName() + "#" + streamField.getName();
+					if (excludedFields.contains(key) || key.equals(FIELD_PARENT))
+					{
+						continue;
+					}
+					Field field = field(h, streamField.getName());
+					slots.add(new Slot(field, key, key.hashCode(), kind(key, field.getType()),
+						isEnclosingInstance(field)));
+				}
 			}
-			return fields;
+			return slots.toArray(new Slot[0]);
 		});
+	}
+
+	private static Kind kind(String key, Class<?> type)
+	{
+		if (key.equals(FIELD_FLAGS))
+		{
+			return Kind.FLAGS;
+		}
+		if (key.equals(FIELD_CHILDREN))
+		{
+			return Kind.CHILDREN;
+		}
+		if (key.equals(FIELD_DATA))
+		{
+			return Kind.DATA;
+		}
+		if (type == int.class)
+		{
+			return Kind.INT;
+		}
+		if (type == long.class)
+		{
+			return Kind.LONG;
+		}
+		if (type == boolean.class)
+		{
+			return Kind.BOOLEAN;
+		}
+		if (type == short.class)
+		{
+			return Kind.SHORT;
+		}
+		if (type == byte.class)
+		{
+			return Kind.BYTE;
+		}
+		if (type == char.class)
+		{
+			return Kind.CHAR;
+		}
+		if (type == float.class)
+		{
+			return Kind.FLOAT;
+		}
+		if (type == double.class)
+		{
+			return Kind.DOUBLE;
+		}
+		return Kind.OBJECT;
 	}
 
 	private int flagMask(Component component)
 	{
-		int mask = 0;
-		for (Map.Entry<Class<?>, Integer> entry : ignoredFlags.entrySet())
-		{
-			if (entry.getKey().isInstance(component))
+		return masks.computeIfAbsent(component.getClass(), type -> {
+			int mask = 0;
+			for (Map.Entry<Class<?>, Integer> entry : ignoredFlags.entrySet())
 			{
-				mask |= entry.getValue();
+				if (entry.getKey().isAssignableFrom(type))
+				{
+					mask |= entry.getValue();
+				}
 			}
-		}
-		return mask;
+			return mask;
+		});
 	}
 
 	private static boolean isEnclosingInstance(Field field)
@@ -362,6 +471,8 @@ public class ComponentStateHasher
 	{
 		private final Page page;
 
+		private final IdentityHashMap<Component, String> paths;
+
 		private final HashingOutputStream bytes = new HashingOutputStream();
 
 		private final StateOutputStream out;
@@ -372,9 +483,10 @@ public class ComponentStateHasher
 
 		private final IdentityHashMap<Object, Boolean> counted;
 
-		Walker(Page page) throws IOException
+		Walker(Page page, IdentityHashMap<Component, String> paths) throws IOException
 		{
 			this.page = page;
+			this.paths = paths;
 			out = new StateOutputStream(bytes);
 			bytes.take();
 			shared = trackSharing ? new HashMap<>() : Map.of();
@@ -418,112 +530,73 @@ public class ComponentStateHasher
 			}
 			else
 			{
-				List<Class<?>> hierarchy = new ArrayList<>();
-				for (Class<?> c = component.getClass(); c != Object.class; c = c.getSuperclass())
+				for (Slot slot : layout(component.getClass()))
 				{
-					hierarchy.add(0, c);
-				}
-				for (Class<?> type : hierarchy)
-				{
-					for (Field field : serializableFields(type))
+					if (slot.kind == Kind.DATA)
 					{
-						String key = type.getName() + "#" + field.getName();
-						if (excludedFields.contains(key) || key.equals(FIELD_PARENT))
+						Map<String, Object> elements = new LinkedHashMap<>();
+						unpackData(slot.field.get(component), elements);
+						for (Map.Entry<String, Object> element : elements.entrySet())
 						{
-							continue;
+							resetField();
+							out.writeObject(element.getValue());
+							out.flush();
+							size += bytes.count();
+							long digest = bytes.take();
+							String elementKey = slot.key + "." + element.getKey();
+							fields.put(elementKey, digest);
+							hash = mix(mix(hash, elementKey.hashCode()), digest);
 						}
-						if (key.equals(FIELD_DATA))
-						{
-							Map<String, Object> elements = new LinkedHashMap<>();
-							unpackData(field.get(component), elements);
-							for (Map.Entry<String, Object> element : elements.entrySet())
-							{
-								out.reset();
-								out.writeObject(element.getValue());
-								out.flush();
-								size += bytes.count();
-								long digest = bytes.take();
-								String elementKey = key + "." + element.getKey();
-								fields.put(elementKey, digest);
-								hash = mix(mix(hash, elementKey.hashCode()), digest);
-							}
-							continue;
-						}
-						out.reset();
-						writeField(component, field, key);
-						out.flush();
-						size += bytes.count();
-						long digest = bytes.take();
-						fields.put(key, digest);
-						hash = mix(mix(hash, key.hashCode()), digest);
+						continue;
 					}
+					resetField();
+					writeField(component, slot);
+					out.flush();
+					size += bytes.count();
+					long digest = bytes.take();
+					fields.put(slot.key, digest);
+					hash = mix(mix(hash, slot.keyHash), digest);
 				}
 			}
 
 			Map<String, DependencyKind> dependencies = new LinkedHashMap<>();
 			for (Map.Entry<Component, DependencyKind> dependency : out.dependencies.entrySet())
 			{
-				dependencies.put(dependency.getKey().getPageRelativePath(), dependency.getValue());
+				dependencies.put(paths.get(dependency.getKey()), dependency.getValue());
 			}
-			return new StateSnapshot.ComponentState(component.getPageRelativePath(),
+			return new StateSnapshot.ComponentState(paths.get(component),
 				component.getClass(), hash, size, fields, dependencies);
 		}
 
-		private void writeField(Component component, Field field, String key)
+		private void writeField(Component component, Slot slot)
 			throws IOException, IllegalAccessException
 		{
-			Class<?> type = field.getType();
-			if (key.equals(FIELD_FLAGS))
+			Field field = slot.field;
+			switch (slot.kind)
 			{
-				out.writeInt(field.getInt(component) & ~flagMask(component));
-			}
-			else if (key.equals(FIELD_CHILDREN))
-			{
-				for (Component child : (MarkupContainer)component)
-				{
-					out.writeUTF(child.getId());
+				case FLAGS -> out.writeInt(field.getInt(component) & ~flagMask(component));
+				case CHILDREN -> {
+					for (Component child : (MarkupContainer)component)
+					{
+						out.writeUTF(child.getId());
+					}
 				}
-			}
-			else if (type == int.class)
-			{
-				out.writeInt(field.getInt(component));
-			}
-			else if (type == long.class)
-			{
-				out.writeLong(field.getLong(component));
-			}
-			else if (type == boolean.class)
-			{
-				out.writeBoolean(field.getBoolean(component));
-			}
-			else if (type == short.class)
-			{
-				out.writeShort(field.getShort(component));
-			}
-			else if (type == byte.class)
-			{
-				out.writeByte(field.getByte(component));
-			}
-			else if (type == char.class)
-			{
-				out.writeChar(field.getChar(component));
-			}
-			else if (type == float.class)
-			{
-				out.writeFloat(field.getFloat(component));
-			}
-			else if (type == double.class)
-			{
-				out.writeDouble(field.getDouble(component));
-			}
-			else
-			{
-				Object value = field.get(component);
-				if (value instanceof Component other && isEnclosingInstance(field))
-				{
-					out.dependency(other, DependencyKind.INNER_CLASS);
+				case INT -> out.writeInt(field.getInt(component));
+				case LONG -> out.writeLong(field.getLong(component));
+				case BOOLEAN -> out.writeBoolean(field.getBoolean(component));
+				case SHORT -> out.writeShort(field.getShort(component));
+				case BYTE -> out.writeByte(field.getByte(component));
+				case CHAR -> out.writeChar(field.getChar(component));
+				case FLOAT -> out.writeFloat(field.getFloat(component));
+				case DOUBLE -> out.writeDouble(field.getDouble(component));
+				default -> {
+					Object value = field.get(component);
+					if (slot.enclosing && value instanceof Component other)
+					{
+						out.dependency(other, DependencyKind.INNER_CLASS);
+					}
+					out.writeObject(value);
 				}
-				out.writeObject(value);
 			}
 		}
 
@@ -569,14 +642,17 @@ public class ComponentStateHasher
 			}
 		}
 
+		private void resetField() throws IOException
+		{
+			if (resetPerField)
+			{
+				out.reset();
+			}
+		}
+
 		private boolean inPage(Component component)
 		{
-			Component current = component;
-			while (current.getParent() != null)
-			{
-				current = current.getParent();
-			}
-			return current == page;
+			return paths.containsKey(component);
 		}
 
 		private final class StateOutputStream extends ObjectOutputStream
@@ -628,7 +704,7 @@ public class ComponentStateHasher
 					{
 						dependencies.putIfAbsent(component, DependencyKind.REFERENCE);
 					}
-					return new ComponentRef(component.getPageRelativePath());
+					return new ComponentRef(paths.get(component));
 				}
 
 				if (obj instanceof SerializedLambda lambda)

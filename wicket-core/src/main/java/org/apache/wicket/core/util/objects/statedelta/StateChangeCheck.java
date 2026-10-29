@@ -68,6 +68,8 @@ public class StateChangeCheck implements IRequestCycleListener, AjaxRequestTarge
 
 	private Consumer<Result> reporter = StateChangeCheck::log;
 
+	private Consumer<Result> versionReporter;
+
 	/**
 	 * @param hasher
 	 *            how to hash the page
@@ -122,11 +124,24 @@ public class StateChangeCheck implements IRequestCycleListener, AjaxRequestTarge
 		return this;
 	}
 
+	/**
+	 * @param reporter
+	 *            receives the result of every non-Ajax listener request, comparing the state
+	 *            before and after the listener ran, or {@code null} to not check those
+	 * @return this
+	 */
+	public StateChangeCheck setVersionReporter(Consumer<Result> reporter)
+	{
+		this.versionReporter = reporter;
+		return this;
+	}
+
 	@Override
 	public void onRequestHandlerResolved(RequestCycle cycle, IRequestHandler handler)
 	{
-		if (handler instanceof ListenerRequestHandler listener && isAjax(cycle) &&
-			result(cycle) == null && listener.getPage() instanceof Page page)
+		if (handler instanceof ListenerRequestHandler listener &&
+			(isAjax(cycle) || versionReporter != null) && result(cycle) == null &&
+			listener.getPage() instanceof Page page)
 		{
 			Map<StateChangeCheck, Result> results = cycle.getMetaData(KEY);
 			if (results == null)
@@ -134,7 +149,18 @@ public class StateChangeCheck implements IRequestCycleListener, AjaxRequestTarge
 				results = new IdentityHashMap<>();
 				cycle.setMetaData(KEY, results);
 			}
-			results.put(this, new Result(page, hasher.snapshot(page), followed));
+			results.put(this, new Result(page, hasher.snapshot(page), followed, handler,
+				isAjax(cycle)));
+		}
+	}
+
+	@Override
+	public void onRequestHandlerExecuted(RequestCycle cycle, IRequestHandler handler)
+	{
+		Result result = result(cycle);
+		if (result != null && !result.ajax && result.handler == handler && result.after == null)
+		{
+			result.after = hasher.snapshot(result.page);
 		}
 	}
 
@@ -162,9 +188,17 @@ public class StateChangeCheck implements IRequestCycleListener, AjaxRequestTarge
 	public void onDetach(RequestCycle cycle)
 	{
 		Result result = result(cycle);
-		if (result != null && result.after != null && result.repainted != null)
+		if (result == null || result.after == null)
 		{
-			result.pageIdAfter = result.page.getPageId();
+			return;
+		}
+		result.pageIdAfter = result.page.getPageId();
+		if (!result.ajax)
+		{
+			versionReporter.accept(result);
+		}
+		else if (result.repainted != null)
+		{
 			reporter.accept(result);
 		}
 	}
@@ -204,6 +238,10 @@ public class StateChangeCheck implements IRequestCycleListener, AjaxRequestTarge
 
 		private final int pageIdBefore;
 
+		private final IRequestHandler handler;
+
+		private final boolean ajax;
+
 		private int pageIdAfter;
 
 		private StateSnapshot after;
@@ -212,11 +250,14 @@ public class StateChangeCheck implements IRequestCycleListener, AjaxRequestTarge
 
 		private Set<String> echoed;
 
-		private Result(Page page, StateSnapshot before, Set<DependencyKind> followed)
+		private Result(Page page, StateSnapshot before, Set<DependencyKind> followed,
+			IRequestHandler handler, boolean ajax)
 		{
 			this.page = page;
 			this.before = before;
 			this.followed = followed;
+			this.handler = handler;
+			this.ajax = ajax;
 			this.pageIdBefore = page.getPageId();
 		}
 
@@ -251,6 +292,14 @@ public class StateChangeCheck implements IRequestCycleListener, AjaxRequestTarge
 		public StateSnapshot getBefore()
 		{
 			return before;
+		}
+
+		/**
+		 * @return whether this was an Ajax request
+		 */
+		public boolean isAjax()
+		{
+			return ajax;
 		}
 
 		/**
@@ -292,18 +341,45 @@ public class StateChangeCheck implements IRequestCycleListener, AjaxRequestTarge
 		 */
 		public boolean isRepainted(String path)
 		{
+			return isRepainted(path, Set.of());
+		}
+
+		private boolean isRepainted(String path, Set<String> notRepainted)
+		{
 			if (repainted.contains("") || echoed.contains(path))
 			{
 				return true;
 			}
 			for (String p = path; !p.isEmpty(); p = parent(p))
 			{
-				if (repainted.contains(p))
+				if (repainted.contains(p) && !notRepainted.contains(p))
 				{
 					return true;
 				}
 			}
 			return false;
+		}
+
+		/**
+		 * What the check would have reported had some of the repainted components not been added.
+		 * 
+		 * @param kinds
+		 *            the dependencies to follow
+		 * @param notRepainted
+		 *            paths of repainted components to treat as not added
+		 * @return paths of affected components that were not repainted
+		 */
+		public Set<String> getMissing(Set<DependencyKind> kinds, Set<String> notRepainted)
+		{
+			Set<String> missing = new LinkedHashSet<>();
+			for (String path : getDelta().getAffected(kinds))
+			{
+				if (!path.isEmpty() && !isRepainted(path, notRepainted))
+				{
+					missing.add(path);
+				}
+			}
+			return missing;
 		}
 
 		/**
@@ -313,15 +389,7 @@ public class StateChangeCheck implements IRequestCycleListener, AjaxRequestTarge
 		 */
 		public Set<String> getMissing(Set<DependencyKind> kinds)
 		{
-			Set<String> missing = new LinkedHashSet<>();
-			for (String path : getDelta().getAffected(kinds))
-			{
-				if (!path.isEmpty() && !isRepainted(path))
-				{
-					missing.add(path);
-				}
-			}
-			return missing;
+			return getMissing(kinds, Set.of());
 		}
 
 		/**

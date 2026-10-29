@@ -26,6 +26,7 @@ import org.apache.wicket.markup.IMarkupResourceStreamProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.Model;
@@ -90,6 +91,19 @@ public class AttributionPage extends WebPage implements IMarkupResourceStreamPro
 				}
 			}
 		});
+		add(new Link<Void>("plainLink")
+		{
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick()
+			{
+				if (action != null)
+				{
+					action.run();
+				}
+			}
+		});
 		add(new AjaxLink<Void>("lambdaLink")
 		{
 			private static final long serialVersionUID = 1L;
@@ -111,7 +125,7 @@ public class AttributionPage extends WebPage implements IMarkupResourceStreamPro
 			+ "<div wicket:id='box'><span wicket:id='bound'></span></div>" //
 			+ "<span wicket:id='unrelated'></span><span wicket:id='anonymous'></span>" //
 			+ "<span wicket:id='pageProperty'></span>" //
-			+ "<a wicket:id='link'>link</a><a wicket:id='lambdaLink'>link</a>" //
+			+ "<a wicket:id='link'>link</a><a wicket:id='lambdaLink'>link</a><a wicket:id='plainLink'>link</a>" //
 			+ "</body></html>");
 	}
 }
