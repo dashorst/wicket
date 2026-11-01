@@ -16,3 +16,4 @@ release.properties
 nb-configuration.xml
 .DS_Store
 **.launch
+*.out
