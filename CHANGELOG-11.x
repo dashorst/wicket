@@ -27,6 +27,8 @@ Release Notes - Wicket - Version 11.0.0
     * [GH-1678] - Quickstart archetype: give slf4j-simple test scope
     * [GH-1688] - WebSocket: Request wrappers break the Servlet header contract (case-sensitive lookup, single-use enumerations)
     * [GH-1721] - Fix the failures in release.sh found while releasing 9.25.0
+    * [GH-1739] - MigrateToWicket11 leaves the org.apache.wicket dependencies at their Wicket 10 version
+    * [GH-1749] - release.sh generates a wrong staging repository ID and a duplicated changelog
 
 ** New Feature
 
