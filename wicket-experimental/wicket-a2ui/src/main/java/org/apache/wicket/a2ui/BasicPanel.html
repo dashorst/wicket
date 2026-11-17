@@ -1,0 +1,50 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<wicket:panel xmlns:wicket="http://wicket.apache.org"><wicket:container wicket:id="content"></wicket:container></wicket:panel>
+
+<wicket:fragment wicket:id="text"><p wicket:id="text" class="a2ui-text"></p></wicket:fragment>
+
+<wicket:fragment wicket:id="image"><img wicket:id="image" class="a2ui-image" alt=""/></wicket:fragment>
+
+<wicket:fragment wicket:id="icon"><span wicket:id="icon" class="a2ui-icon" aria-hidden="true"></span></wicket:fragment>
+
+<wicket:fragment wicket:id="video"><video wicket:id="media" class="a2ui-video" controls="controls"></video></wicket:fragment>
+
+<wicket:fragment wicket:id="audio"><audio wicket:id="media" class="a2ui-audio" controls="controls"></audio></wicket:fragment>
+
+<wicket:fragment wicket:id="flex"><div wicket:id="container"><div wicket:id="children" class="a2ui-cell"></div></div></wicket:fragment>
+
+<wicket:fragment wicket:id="card"><div class="a2ui-card"><div wicket:id="child" class="a2ui-slot"></div></div></wicket:fragment>
+
+<wicket:fragment wicket:id="tabs"><div class="a2ui-tabs">
+	<div class="a2ui-tablist" role="tablist"><wicket:container wicket:id="tabs"><button wicket:id="tab" type="submit" role="tab" class="a2ui-tab"><wicket:container wicket:id="title"></wicket:container></button></wicket:container></div>
+	<div class="a2ui-tabpanel" role="tabpanel"><div wicket:id="panels" class="a2ui-slot"></div></div>
+</div></wicket:fragment>
+
+<wicket:fragment wicket:id="divider"><hr wicket:id="divider" class="a2ui-divider"/></wicket:fragment>
+
+<wicket:fragment wicket:id="button"><button wicket:id="button" type="submit" class="a2ui-button"><span wicket:id="child" class="a2ui-slot"></span></button></wicket:fragment>
+
+<wicket:fragment wicket:id="input"><label class="a2ui-field"><span wicket:id="label" class="a2ui-label"></span><input wicket:id="input" class="a2ui-input"/></label></wicket:fragment>
+
+<wicket:fragment wicket:id="textArea"><label class="a2ui-field"><span wicket:id="label" class="a2ui-label"></span><textarea wicket:id="input" class="a2ui-input" rows="4"></textarea></label></wicket:fragment>
+
+<wicket:fragment wicket:id="checkBox"><label class="a2ui-checkbox"><input wicket:id="input" type="checkbox"/><span wicket:id="label"></span></label></wicket:fragment>
+
+<wicket:fragment wicket:id="choices"><fieldset class="a2ui-choices"><legend wicket:id="label"></legend><div wicket:id="input"></div></fieldset></wicket:fragment>
+
+<wicket:fragment wicket:id="slider"><label class="a2ui-field"><span wicket:id="label" class="a2ui-label"></span><input wicket:id="input" type="range" class="a2ui-slider"/></label></wicket:fragment>

@@ -1,0 +1,122 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+.a2ui-surface {
+	--a2ui-primary: #3557c5;
+	--a2ui-gap: 0.75rem;
+	--a2ui-border: rgba(127, 127, 127, 0.35);
+}
+
+.a2ui-form {
+	margin: 0;
+}
+
+.a2ui-slot {
+	display: contents;
+}
+
+.a2ui-flex {
+	display: flex;
+	gap: var(--a2ui-gap);
+}
+
+.a2ui-row { flex-direction: row; }
+.a2ui-column { flex-direction: column; }
+
+.a2ui-justify-start { justify-content: flex-start; }
+.a2ui-justify-center { justify-content: center; }
+.a2ui-justify-end { justify-content: flex-end; }
+.a2ui-justify-spaceAround { justify-content: space-around; }
+.a2ui-justify-spaceBetween { justify-content: space-between; }
+.a2ui-justify-spaceEvenly { justify-content: space-evenly; }
+.a2ui-justify-stretch { justify-content: stretch; }
+
+.a2ui-align-start { align-items: flex-start; }
+.a2ui-align-center { align-items: center; }
+.a2ui-align-end { align-items: flex-end; }
+.a2ui-align-stretch { align-items: stretch; }
+
+.a2ui-text { margin: 0; }
+.a2ui-text-caption { font-size: 0.85em; opacity: 0.75; }
+
+.a2ui-card {
+	border: 1px solid var(--a2ui-border);
+	border-radius: 0.5rem;
+	padding: 1rem;
+}
+
+.a2ui-image { max-width: 100%; }
+.a2ui-image-icon { width: 1.5rem; height: 1.5rem; }
+.a2ui-image-avatar { width: 2.5rem; height: 2.5rem; border-radius: 50%; }
+.a2ui-image-smallFeature { width: 8rem; }
+.a2ui-image-mediumFeature { width: 16rem; }
+.a2ui-image-largeFeature { width: 32rem; }
+.a2ui-image-header { width: 100%; }
+.a2ui-fit-contain { object-fit: contain; }
+.a2ui-fit-cover { object-fit: cover; }
+.a2ui-fit-fill { object-fit: fill; }
+.a2ui-fit-none { object-fit: none; }
+.a2ui-fit-scaleDown { object-fit: scale-down; }
+
+.a2ui-video, .a2ui-audio { max-width: 100%; }
+
+.a2ui-divider {
+	border: 0;
+	border-top: 1px solid var(--a2ui-border);
+	margin: 0;
+	align-self: stretch;
+}
+.a2ui-divider-vertical { border-top: 0; border-left: 1px solid var(--a2ui-border); }
+
+.a2ui-button {
+	border: 1px solid var(--a2ui-border);
+	border-radius: 0.375rem;
+	padding: 0.4rem 0.9rem;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+.a2ui-button-primary {
+	background: var(--a2ui-primary);
+	border-color: var(--a2ui-primary);
+	color: #fff;
+}
+.a2ui-button-borderless { border-color: transparent; }
+
+.a2ui-field { display: flex; flex-direction: column; gap: 0.25rem; }
+.a2ui-input { font: inherit; padding: 0.35rem 0.5rem; }
+.a2ui-checkbox { display: inline-flex; gap: 0.5rem; align-items: center; }
+.a2ui-choices { border: 0; margin: 0; padding: 0; }
+
+.a2ui-tablist { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--a2ui-border); }
+.a2ui-tab {
+	border: 0;
+	border-bottom: 2px solid transparent;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	padding: 0.4rem 0.8rem;
+	cursor: pointer;
+}
+.a2ui-tab[aria-selected="true"] { border-bottom-color: var(--a2ui-primary); }
+.a2ui-tabpanel { padding-top: var(--a2ui-gap); }
+
+.a2ui-icon {
+	font-family: "Material Symbols Outlined", "Material Icons";
+	font-size: 1.5rem;
+	line-height: 1;
+}
